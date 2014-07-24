@@ -1,83 +1,73 @@
+
+#import os
+#os.environ.setdefault("DJANGO_SETTINGS_MODULE", "mayan.settings")
+#from mayan.apps.sources.models import BaseModel
+
+import time
 import requests
 
-# this is sudo code as I don't really know how to get to the BaseModel class ...
-from mayan.apps.sources.models.BaseModel as MayanDocument
-
-from db_api import (
+from api import (
     get_one_not_uploaded_document,
+    upload_document,
     mark_document_uploaded,
 )
 
-def upload_document_to_mayan(document):
+from token import get_token
 
-    """
-    {
-        u'uploaded': False,
-        u'doc_url': u'http: //timduffy.me/Resume-TimDuffy-20130813.pdf',
-        u'url_data': {
-            u'status': u'running',
-            u'doc_type': u'application/pdf',
-            u'start_datetime': u'2014-07-1815: 32: 34',
-            u'target_url': u'http: //timduffy.me/',
-            u'max_link_level': 3,
-            u'description': u"Tim Duffy's Personal Website",
-            u'title': u'TimDuffy.Me',
-            u'runs': [
-                
-            ],
-            u'scraper_id': u'692127e0-9d3a-4f99-ae39-f206e2a32f75',
-            u'frequency': 2,
-            u'finish_datetime': u'',
-            u'creation_datetime': u'2014-07-1815: 32: 34',
-            u'allowed_domains': [
-                
-            ]
-        },
-        u'link_text': u'Resume',
-        u'scrape_datetime': u'2014-07-1815: 32: 35',
-        u'insert_datetime': u'2014-07-1815: 32: 35.075349',
-        u'source_id': u'692127e0-9d3a-4f99-ae39-f206e2a32f75',
-        u'_id': ObjectId('53c97653a70f9e356ba0df44')
-    }
-    """
+class Uploader(object):
 
-    success = False
-    try:
+    def __init__(self,username,password,domain="http://127.0.0.1/"):
 
-        # pull the document url out of the payload
-        doc_url = document['doc_url']
+        self.domain = domain
+        self.token = get_token(username, password, self.domain)
 
-        # get the file handle from requests
-        r = requests.get(doc_url, stream=True)
+    def upload_document_to_mayan(self,document):
 
-        # this is sudo code, as I don't know how to connect to mayan yet :/
-        mayan_document = MayanDocument()
-        mayan_document.upload_single_file( r )
+        success = False
+        try:
 
-        # mark as uploaded
-        mark_document_uploaded(document['_id']) 
+            doc_url = document['doc_url']
+            r = requests.get(doc_url, stream=True)
 
-        # success!
-        success = True
+            upload_document(r.content,self.token,self.domain)
 
-    except:
-        pass
+            mark_document_uploaded(document['_id']) 
 
-    return success
+            success = True
 
-def upload_loop():
+        except:
+            pass
 
-   while( True ):
+        return success
 
-       document = get_one_not_uploaded_document()
+    def upload_loop(self):
+ 
+        while( True ):
+ 
+            print "Getting one document ..."
 
-       if document != None:
+            document = get_one_not_uploaded_document()
 
-           upload_document_to_mayan(document)
+            #print "Document:"
+            #print document
+  
+            if document != None:
+ 
+                print "Uploading document to mayan ..."
 
-       sleep(.1)
+                self.upload_document_to_mayan(document)
+
+            time.sleep(1)
+
+            #raise Exception('debug')    
+
 
 if __name__ == '__main__':
 
-    upload_loop()
+    username = 'admin' #'barkingowl'
+    password = 'YxBGqsd8tF' #'bopass'
+    domain = 'http://127.0.0.1:8000/'
+
+    uploader = Uploader(username,password,domain)
+    uploader.upload_loop()
 

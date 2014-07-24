@@ -4,7 +4,7 @@ import datetime
 
 from barking_owl import BusAccess
 
-from db_api import add_document
+from db import add_document
 
 def new_document_callback(payload):
 
