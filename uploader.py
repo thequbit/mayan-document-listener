@@ -24,19 +24,26 @@ class Uploader(object):
     def upload_document_to_mayan(self,document):
 
         success = False
-        try:
+        #try:
+        if True:
+
+            print "Downloading document ..."
 
             doc_url = document['doc_url']
             r = requests.get(doc_url, stream=True)
 
+            print "Uploading document to mayan ..."
+
             upload_document(r.content,self.token,self.domain)
+
+            print "Successfully uploaded document '{0}'.  Marking as uploaded in queue.".format(document['_id'])
 
             mark_document_uploaded(document['_id']) 
 
             success = True
 
-        except:
-            pass
+        #except:
+        #    pass
 
         return success
 

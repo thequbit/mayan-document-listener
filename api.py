@@ -31,7 +31,7 @@ def get_token(username, password, domain="http://127.0.0.1/"):
 
 def _create_document(token, domain="http://127.0.0.1/"):
 
-    print "_create_document()"
+#    print "_create_document()"
 
     if domain[-1:] != '/':
         domain += '/'
@@ -49,12 +49,16 @@ def _create_document(token, domain="http://127.0.0.1/"):
 
 def upload_document(doc_file, token, domain="http://127.0.0.1/"):
 
-    print "upload_document()"
+#    print "upload_document()"
 
     if domain[-1:] != '/':
         domain += '/'
 
+    print "Creating document in mayan ..."
+
     url,new_url,uuid = _create_document(token, domain)
+
+    print "Posting file to mayan ..."
 
 #    print "new_version URL: %s" % new_url
 
@@ -63,6 +67,8 @@ def upload_document(doc_file, token, domain="http://127.0.0.1/"):
     response = requests.post(new_url, files=document, headers=headers)
 #    print "upload_document() Response: %s" % response.text
     obj = json.loads(response.text)
+
+    print obj
 
 def add_document(source_id, doc_url, link_text, 
         scrape_datetime, url_data):
@@ -84,39 +90,60 @@ def add_document(source_id, doc_url, link_text,
 def mark_document_uploaded(document_id):
 
 #    updated_document = None
-    try:
-#    if True:
+#    try:
+    if True:
         document = _documents.find_one({'_id': document_id})
 
         document['uploaded'] = True
 
-        #print ''
-        #print document
-        #print ''
+        print ''
+        print 'Found Doc:'
+        print document
+        print ''
 
         updated_document = _documents.update(
             { '_id': document_id },
-            {'$set': document }
+            document,
+            upsert=False,
         )
-    
+   
+        new_document = _documents.find_one({'_id': document_id})
+ 
         print ''
-        print updated_document
+        print 'Updated Doc:'
+        print new_document
         print ''
 
-    except:
-        pass
+    #except:
+    #    pass
     
     return updated_document
 
 def get_one_not_uploaded_document():
 
     document = None
-    try:
+    #try:
+    if True:
         document = _documents.find_one({'uploaded': False})
-    except:
-        pass
+    #except:
+    #    pass
     
     return document
+
+def get_all_documents():
+
+    documents = []
+#    try:
+    if True:
+
+        responses = _documents.find()
+        for response in responses:
+            documents.append(documents)
+
+#    except:
+#        pass
+
+    return documents
 
 def add_error(error_type, error_text):
 
@@ -133,13 +160,14 @@ def add_error(error_type, error_text):
 def get_all_errers():
 
     errors = []
-    try:
+    #try:
+    if True:
         responses = _errors.find()
         for response in responses:
             errors.append(response)
-    except:
-        errors = None
-        pass
+    #except:
+    #    errors = None
+    #    pass
     return errors
 
 if __name__ == '__main__':
